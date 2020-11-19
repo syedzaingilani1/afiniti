@@ -8,3 +8,10 @@
  the folder named bash scripting contain the bashsript.sh for the task 3
  
  just make it executeable by running chmod +x bashscript.sh
+ 
+ # Access of server:
+ by typing this public ip you can view kibana and wordpress site on your desktop.
+ 
+ 34.204.199.126:5601   =>for kibana
+
+34.204.199.126:8000  => for wordpress
