@@ -1,0 +1,112 @@
+---
+- hosts: all
+  user: ansible
+  become: True
+  tasks:
+- name: Create a login user
+    user:
+    name: Devops
+    password: '$6$F4NWXRFtSdCi8$DsB5vvMJYusQhSbvGXrYDXL6Xj37MUuqFCd4dGXdKd6NyxT3lpdELN07/Kpo7EjjWnm9zusFg/LLFv6oc.ynu/'
+    groups: docker, sudo   # Empty by default.
+    state: present
+    shell: /bin/bash       # Defaults to /bin/bash
+    system: no             # Defaults to no
+    createhome: yes        # Defaults to yes
+    home: /home/Devops  # Defaults to /home/Devops
+
+- name: Install a list of packages with a list variable
+    yum:
+    name: "{{ packages }}"
+    state: present
+    vars:
+    packages:
+    - httpd     #apache
+    - httpd-tools
+    - git
+    - openssl-devel
+    - bzip2
+    - wget
+    
+- name: Install yum utils
+    yum:
+    name: yum-utils
+    state: latest
+
+- name: Install device-mapper-persistent-data
+    yum:
+    name: device-mapper-persistent-data
+    state: latest
+
+- name: Add official Docker GPG key
+    rpm_key:
+    key: "https://download.docker.com/linux/centos/gpg"
+    state: present
+
+- name: Add Docker repo
+    get_url:    
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install docker-ce & epel-release
+    yum:
+    name: "{{ packages }}"
+    update_cache: yes
+    state: present
+    vars:  
+    packages:
+    - docker-ce
+    - epel-release 
+    when: ansible_distribution == 'CentOS'
+
+- name: Install python-pip
+    yum: 
+    name: python-pip
+    update_cache: yes 
+    state: present
+
+- name: Install docker compose 
+    pip: 
+    name: docker-compose 
+    state: present 
+
+- name: Add users to the Docker group
+    user:
+    name: Devops
+    groups: docker
+    append: yes
+
+- name: Start Docker Daemon 
+    systemd: 
+    state: started
+    enabled: yes
+    name: docker
+
+- name: Ensure Jenkins Repository is Installed
+    yum_repository:
+    name: jenkins
+    state: present
+    description: Official Jenkins Yum Repo
+    baseurl: http://pkg.jenkins.io/redhat
+    gpgkey: https://jenkins-ci.org/redhat/jenkins-ci.org.key
+    gpgcheck: yes
+    enabled: yes
+
+- name: Ensure Jenkins is Installed
+    yum :
+    name: jenkins
+    update_cache: yes
+    state: present
+
+- name: Enable and Start the Jenkins Service
+    service:
+    name: jenkins
+    enabled: yes
+    state: started
+
+- name: Open Firewall Port
+    firewalld:
+    zone: public
+    port: 8080/tcp
+    permanent: true
+    state: enabled
+    immediate: true
