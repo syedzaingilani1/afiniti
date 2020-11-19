@@ -6,3 +6,5 @@
  
  # task 3:
  the folder named bash scripting contain the bashsript.sh for the task 3
+ 
+ just make it executeable by running chmod +x bashscript.sh
